@@ -1,4 +1,4 @@
-# Task2_Підготовка інфраструктурного репозиторію для створення GKE кластеру.
+# Task3 Help our mate with Terraform + Flux.
 
 ![1](.img/SCR-20240103-mtpo.png)
 ![2](.img/SCR-20240102-ttei.png)
