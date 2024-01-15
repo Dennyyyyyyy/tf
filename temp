@@ -1,0 +1,31 @@
+
+module "gke_cluster" {
+  source         = "github.com/Dennyyyyyyy/tf-google-gke-cluster"
+  GOOGLE_REGION  = var.GOOGLE_REGION
+  GOOGLE_PROJECT = var.GOOGLE_PROJECT
+  GKE_NUM_NODES  = 2
+}
+
+terraform {
+  backend "gcs" {
+    bucket = "dennyyyyyyy-secret"
+    prefix = "terraform/state"
+  }
+}
+resource "google_container_cluster" "demo" {
+  name     = var.GKE_CLUSTER_NAME
+  location = var.GOOGLE_REGION
+
+  initial_node_count       = 1
+  remove_default_node_pool = true
+
+  workload_identity_config {
+    workload_pool = "${var.GOOGLE_PROJECT}.svc.id.goog"
+  }
+  node_config {
+    service_account = "sv-keapi@k8s-k3s-405517.iam.gserviceaccount.com"
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
+  }
+}
