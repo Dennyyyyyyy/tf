@@ -4,7 +4,7 @@ provider "google" {
   region  = var.GOOGLE_REGION
 }
 
-resource "google_container_cluster" "demo" {
+resource "google_container_cluster" "this" {
   name     = var.GKE_CLUSTER_NAME
   location = var.GOOGLE_REGION
 
@@ -22,32 +22,34 @@ resource "google_container_cluster" "demo" {
   }
 }
 
-resource "google_container_node_pool" "demo" {
+resource "google_container_node_pool" "this" {
   name       = var.GKE_POOL_NAME
-  project    = google_container_cluster.demo.project
-  cluster    = google_container_cluster.demo.name
-  location   = google_container_cluster.demo.location
+  project    = google_container_cluster.this.project
+  cluster    = google_container_cluster.this.name
+  location   = google_container_cluster.this.location
   node_count = var.GKE_NUM_NODES
 
   node_config {
-    service_account = "sv-keapi@k8s-k3s-405517.iam.gserviceaccount.com"
     machine_type = var.GKE_MACHINE_TYPE
+    service_account = "sv-keapi@k8s-k3s-405517.iam.gserviceaccount.com"
   }
 }
 
 module "gke_auth" {
   depends_on = [
-    google_container_cluster.demo
+    google_container_cluster.this
   ]
   source               = "terraform-google-modules/kubernetes-engine/google//modules/auth"
   version              = ">= 24.0.0"
   project_id           = var.GOOGLE_PROJECT
-  cluster_name         = google_container_cluster.demo.name
+  cluster_name         = google_container_cluster.this.name
   location             = var.GOOGLE_REGION
 }
 
-resource "local_file" "kubeconfig" {
-  content  = module.gke_auth.kubeconfig_raw
-  filename = "${path.module}/kubeconfig"
-  file_permission = "0400"
+
+data "google_client_config" "current" {}
+
+data "google_container_cluster" "main" {
+  name     = google_container_cluster.this.name
+  location = var.GOOGLE_REGION
 }
